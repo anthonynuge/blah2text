@@ -41,10 +41,10 @@ terminal_processes = [
 enabled = true          # waveform overlay while recording
 color = "#e8e8e8"       # any Tk color: "#7dd3a8", "white", "cyan", ...
 width = 420             # pixels
-height = 56
+height = 96
 bars = 56               # number of history bars shown
 fps = 30                # redraw rate (only while visible)
-gain = 14.0             # mic level -> bar height sensitivity
+gain = 30.0             # mic level -> bar height sensitivity
 
 # ---------------------------------------------------------------------------
 # Planned features (documented stubs — not implemented in the MVP):

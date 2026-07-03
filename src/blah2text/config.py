@@ -56,10 +56,10 @@ class VizConfig:
     color: str = "#e8e8e8"      # any Tk color: "#7dd3a8", "white", ...
     background: str = "transparent"  # "transparent" or a solid color
     width: int = 420
-    height: int = 56
+    height: int = 96
     bars: int = 56
     fps: int = 30
-    gain: float = 14.0          # mic level -> bar height sensitivity
+    gain: float = 30.0          # mic level -> bar height sensitivity
 
 
 @dataclass
