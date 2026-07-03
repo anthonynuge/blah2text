@@ -1,0 +1,37 @@
+# blah2text configuration
+# Edit and restart the app to apply changes.
+
+[hotkey]
+key = "f9"              # push-to-talk key: hold to record, release to transcribe
+
+[audio]
+samplerate = 16000      # Whisper models expect 16 kHz
+device = -1             # -1 = system default microphone; run `python run.py --list-devices`
+
+[stt]
+model = "small.en"      # tiny.en / base.en / small.en / medium.en / large-v3
+device = "auto"         # auto -> try CUDA float16, fall back to CPU int8
+compute_type = "auto"   # auto -> float16 on GPU, int8 on CPU
+language = "en"
+
+[cleanup]
+enabled = true
+ollama_url = "http://127.0.0.1:11434"
+model = "qwen2.5:7b"    # alternatives: gemma3:4b, llama3.2:3b
+min_words_for_llm = 10  # shorter utterances skip the LLM entirely (latency rule)
+timeout_seconds = 20.0
+
+[inject]
+method = "clipboard"    # "clipboard" = Ctrl+V paste (saves/restores clipboard)
+                        # "type"      = ctypes SendInput KEYEVENTF_UNICODE (works in terminals)
+restore_clipboard = true
+
+# ---------------------------------------------------------------------------
+# Planned features (documented stubs — not implemented in the MVP):
+#
+# [vocabulary]          # custom vocabulary / word replacements applied after STT
+# enabled = false
+#
+# [commands]            # voice commands like "new line" / "delete that"
+# enabled = false
+# ---------------------------------------------------------------------------

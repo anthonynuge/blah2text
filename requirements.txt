@@ -1,0 +1,14 @@
+# blah2text — core dictation + AI cleanup MVP
+# Python 3.11+ recommended (uses stdlib tomllib for config); tested on 3.12.
+
+faster-whisper>=1.1.0     # STT via CTranslate2. For RTX 50-series (Blackwell/sm_120)
+                          # you may need to upgrade ctranslate2 to a CUDA 12.8 build:
+                          #   pip install --upgrade "ctranslate2>=4.6.0"
+sounddevice>=0.4.6        # microphone capture
+numpy>=1.24               # audio buffers
+global-hotkeys>=0.1.7     # system-wide push-to-talk key (hold F9)
+pywin32>=306              # clipboard save/restore for paste injection
+requests>=2.31            # talk to the local Ollama HTTP API
+
+# dev / smoke tests
+pytest>=8.0
