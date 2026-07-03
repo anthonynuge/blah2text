@@ -17,7 +17,13 @@ MIN_AUDIO_SECONDS = 0.3  # ignore accidental taps
 class App:
     def __init__(self, cfg: Config):
         self.cfg = cfg
-        self.recorder = Recorder(cfg.audio)
+        self.viz = None
+        if cfg.visualizer.enabled:
+            from .viz import Visualizer
+            self.viz = Visualizer(cfg.visualizer)
+        self.recorder = Recorder(
+            cfg.audio,
+            on_level=self.viz.push_level if self.viz else None)
         self.transcriber = Transcriber(cfg.stt)
         self._busy = threading.Lock()
 
@@ -28,6 +34,8 @@ class App:
             return
         try:
             self.recorder.start()
+            if self.viz:
+                self.viz.show()
             print("[rec] listening... (release to transcribe)")
         except Exception as exc:
             print(f"[rec] could not open microphone: {exc}")
@@ -35,6 +43,8 @@ class App:
     def _on_release(self) -> None:
         if not self.recorder.recording:
             return
+        if self.viz:
+            self.viz.hide()
         audio = self.recorder.stop()
         threading.Thread(target=self._process, args=(audio,),
                          daemon=True).start()
@@ -65,6 +75,8 @@ class App:
     def run(self) -> None:
         import global_hotkeys  # deferred: installs a Windows keyboard hook
 
+        if self.viz:
+            self.viz.start()
         print(f"[stt] loading model '{self.cfg.stt.model}'...")
         self.transcriber.load()
         print(f"[stt] ready on {self.transcriber.device} "

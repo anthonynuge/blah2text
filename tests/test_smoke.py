@@ -7,8 +7,12 @@ from unittest import mock
 
 import pytest
 
+import numpy as np
+
 from blah2text import cleanup, inject
-from blah2text.config import CleanupConfig
+from blah2text.audio import Recorder
+from blah2text.config import AudioConfig, CleanupConfig
+from blah2text.viz import scale_rms
 
 
 # --- rule-based cleanup ---------------------------------------------------
@@ -135,6 +139,32 @@ def test_ctrl_shift_v_chord_event_order():
         (inject.VK_V, False), (inject.VK_V, True),
         (inject.VK_SHIFT, True), (inject.VK_CONTROL, True),
     ]
+
+
+# --- visualizer level feed ---------------------------------------------------
+
+def test_scale_rms_clamped_and_monotonic():
+    assert scale_rms(0.0) == 0.0
+    assert scale_rms(10.0) == 1.0  # clamped
+    quiet, loud = scale_rms(0.01), scale_rms(0.1)
+    assert 0.0 < quiet < loud <= 1.0
+
+
+def test_recorder_reports_levels_to_callback():
+    levels = []
+    rec = Recorder(AudioConfig(), on_level=levels.append)
+    block = np.full(160, 0.5, dtype=np.float32)
+    rec._handle_block(block)
+    assert len(levels) == 1
+    assert levels[0] == pytest.approx(0.5)
+
+
+def test_recorder_survives_broken_level_callback():
+    def boom(_rms):
+        raise RuntimeError("viz died")
+    rec = Recorder(AudioConfig(), on_level=boom)
+    rec._handle_block(np.zeros(160, dtype=np.float32))  # must not raise
+    assert len(rec._chunks) == 1
 
 
 def test_type_unicode_builds_keyup_keydown_pairs():

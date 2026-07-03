@@ -86,6 +86,9 @@ List audio input devices: `python run.py --list-devices`.
 | `cleanup`   | `model`             | `"qwen2.5:7b"`     | any Ollama model |
 | `cleanup`   | `min_words_for_llm` | `10`               | shorter utterances skip the LLM |
 | `inject`    | `method`            | `"clipboard"`      | `"clipboard"` or `"type"` |
+| `visualizer`| `enabled`           | `true`             | waveform overlay while recording |
+| `visualizer`| `color`             | `"#e8e8e8"`        | bar color (any Tk color) |
+| `visualizer`| `background`        | `"transparent"`    | `"transparent"` or a solid color |
 
 ### The two injection methods
 
@@ -102,6 +105,16 @@ List audio input devices: `python run.py --list-devices`.
 - **`type`**: synthesizes real keystrokes with Win32 `SendInput` +
   `KEYEVENTF_UNICODE`. Works in apps that ignore paste — including many
   terminals — and doesn't touch the clipboard. Slower for long text.
+
+### Recording visualizer
+
+While you hold the hotkey, a minimal waveform strip appears at the bottom
+center of your main screen and reacts to your voice, then disappears on
+release. It's a transparent, borderless, click-less tkinter overlay driven
+by per-block mic RMS — effectively zero overhead on the dictation pipeline.
+Customize (or disable) it in the `[visualizer]` section of config.toml:
+bar `color`, `background` (`"transparent"` or a solid color like
+`"#16222e"`), size, bar count, `fps`, and `gain` (sensitivity).
 
 ### Cleanup behavior (latency rules)
 

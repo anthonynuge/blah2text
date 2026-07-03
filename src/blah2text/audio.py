@@ -10,10 +10,19 @@ from .config import AudioConfig
 class Recorder:
     """Buffers mic audio between start() and stop() as 16 kHz float32 mono."""
 
-    def __init__(self, cfg: AudioConfig):
+    def __init__(self, cfg: AudioConfig, on_level=None):
         self.cfg = cfg
+        self.on_level = on_level  # called with each block's RMS (audio thread)
         self._stream = None
         self._chunks: list[np.ndarray] = []
+
+    def _handle_block(self, block: np.ndarray) -> None:
+        self._chunks.append(block)
+        if self.on_level is not None:
+            try:
+                self.on_level(float(np.sqrt(np.mean(np.square(block)))))
+            except Exception:
+                pass  # a viz hiccup must never break capture
 
     @property
     def recording(self) -> bool:
@@ -27,7 +36,7 @@ class Recorder:
         self._chunks = []
 
         def _callback(indata, _frames, _time, _status):
-            self._chunks.append(indata[:, 0].copy())
+            self._handle_block(indata[:, 0].copy())
 
         device = self.cfg.device if self.cfg.device >= 0 else None
         self._stream = sd.InputStream(

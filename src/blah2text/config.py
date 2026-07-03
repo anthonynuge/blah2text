@@ -51,12 +51,25 @@ class InjectConfig:
 
 
 @dataclass
+class VizConfig:
+    enabled: bool = True
+    color: str = "#e8e8e8"      # any Tk color: "#7dd3a8", "white", ...
+    background: str = "transparent"  # "transparent" or a solid color
+    width: int = 420
+    height: int = 56
+    bars: int = 56
+    fps: int = 30
+    gain: float = 14.0          # mic level -> bar height sensitivity
+
+
+@dataclass
 class Config:
     hotkey: HotkeyConfig = field(default_factory=HotkeyConfig)
     audio: AudioConfig = field(default_factory=AudioConfig)
     stt: SttConfig = field(default_factory=SttConfig)
     cleanup: CleanupConfig = field(default_factory=CleanupConfig)
     inject: InjectConfig = field(default_factory=InjectConfig)
+    visualizer: VizConfig = field(default_factory=VizConfig)
 
 
 def _apply(section_obj, data: dict) -> None:
@@ -85,7 +98,8 @@ def load_config(path: str | Path | None = None) -> Config:
         return cfg
     with open(config_path, "rb") as fh:
         data = tomllib.load(fh)
-    for section_name in ("hotkey", "audio", "stt", "cleanup", "inject"):
+    for section_name in ("hotkey", "audio", "stt", "cleanup", "inject",
+                         "visualizer"):
         if isinstance(data.get(section_name), dict):
             _apply(getattr(cfg, section_name), data[section_name])
     return cfg
