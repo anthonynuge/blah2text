@@ -55,7 +55,8 @@ class App:
             print(f"[out] {final!r}  ({seconds:.1f}s audio -> {elapsed:.1f}s)")
             try:
                 inject(final, method=self.cfg.inject.method,
-                       restore_clipboard=self.cfg.inject.restore_clipboard)
+                       restore_clipboard=self.cfg.inject.restore_clipboard,
+                       terminal_processes=self.cfg.inject.terminal_processes)
             except Exception as exc:
                 print(f"[inject] failed ({exc}); text printed above.")
 

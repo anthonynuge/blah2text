@@ -75,7 +75,9 @@ def test_inject_dispatches_clipboard_method():
     with mock.patch.object(inject, "_paste_clipboard") as paste, \
          mock.patch.object(inject, "_type_unicode") as typer:
         inject.inject("hello", method="clipboard", restore_clipboard=True)
-    paste.assert_called_once_with("hello", restore=True)
+    paste.assert_called_once_with(
+        "hello", restore=True,
+        terminal_processes=inject.DEFAULT_TERMINAL_PROCESSES)
     typer.assert_not_called()
 
 
@@ -98,6 +100,41 @@ def test_inject_empty_text_is_noop():
         inject.inject("", method="clipboard")
     paste.assert_not_called()
     typer.assert_not_called()
+
+
+def _paste_with_foreground(process_name):
+    """Run _paste_clipboard with all OS calls mocked; return the chord call."""
+    with mock.patch.object(inject, "_foreground_process_name",
+                           return_value=process_name), \
+         mock.patch.object(inject, "_get_clipboard_text", return_value="old"), \
+         mock.patch.object(inject, "_set_clipboard_text"), \
+         mock.patch.object(inject, "_send_ctrl_v") as chord, \
+         mock.patch.object(inject.time, "sleep"):
+        inject._paste_clipboard("hello")
+    return chord
+
+
+def test_terminal_foreground_pastes_with_ctrl_shift_v():
+    chord = _paste_with_foreground("wezterm-gui.exe")
+    chord.assert_called_once_with(shift=True)
+
+
+def test_normal_app_pastes_with_plain_ctrl_v():
+    chord = _paste_with_foreground("notepad.exe")
+    chord.assert_called_once_with(shift=False)
+
+
+def test_ctrl_shift_v_chord_event_order():
+    sent = []
+    with mock.patch.object(inject, "_send_inputs", side_effect=sent.append):
+        inject._send_ctrl_v(shift=True)
+    vks = [(e.union.ki.wVk, bool(e.union.ki.dwFlags & inject.KEYEVENTF_KEYUP))
+           for e in sent[0]]
+    assert vks == [
+        (inject.VK_CONTROL, False), (inject.VK_SHIFT, False),
+        (inject.VK_V, False), (inject.VK_V, True),
+        (inject.VK_SHIFT, True), (inject.VK_CONTROL, True),
+    ]
 
 
 def test_type_unicode_builds_keyup_keydown_pairs():

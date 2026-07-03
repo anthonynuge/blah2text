@@ -21,8 +21,22 @@ INPUT_KEYBOARD = 1
 KEYEVENTF_KEYUP = 0x0002
 KEYEVENTF_UNICODE = 0x0004
 VK_CONTROL = 0x11
+VK_SHIFT = 0x10
 VK_RETURN = 0x0D
 VK_V = 0x56
+
+# Foreground processes that get Ctrl+Shift+V instead of Ctrl+V. These
+# terminals intercept the chord themselves and feed the clipboard to the
+# inner program as typed input, so pasting works even when that program
+# (Claude Code, vim, a REPL) has no Ctrl+V binding of its own.
+DEFAULT_TERMINAL_PROCESSES = (
+    "wezterm-gui.exe",
+    "windowsterminal.exe",
+    "alacritty.exe",
+    "mintty.exe",
+    "hyper.exe",
+    "ghostty.exe",
+)
 
 ULONG_PTR = ctypes.c_size_t
 
@@ -85,13 +99,41 @@ def _type_unicode(text: str) -> None:
         _send_inputs(events)
 
 
-def _send_ctrl_v() -> None:
-    _send_inputs([
-        _key_input(vk=VK_CONTROL),
-        _key_input(vk=VK_V),
-        _key_input(vk=VK_V, flags=KEYEVENTF_KEYUP),
-        _key_input(vk=VK_CONTROL, flags=KEYEVENTF_KEYUP),
-    ])
+def _send_ctrl_v(shift: bool = False) -> None:
+    events = [_key_input(vk=VK_CONTROL)]
+    if shift:
+        events.append(_key_input(vk=VK_SHIFT))
+    events.append(_key_input(vk=VK_V))
+    events.append(_key_input(vk=VK_V, flags=KEYEVENTF_KEYUP))
+    if shift:
+        events.append(_key_input(vk=VK_SHIFT, flags=KEYEVENTF_KEYUP))
+    events.append(_key_input(vk=VK_CONTROL, flags=KEYEVENTF_KEYUP))
+    _send_inputs(events)
+
+
+def _foreground_process_name() -> str:
+    """Executable name (lowercase) of the app that owns the focused window."""
+    user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
+    hwnd = user32.GetForegroundWindow()
+    if not hwnd:
+        return ""
+    pid = wintypes.DWORD()
+    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,
+                                  False, pid.value)
+    if not handle:
+        return ""
+    try:
+        buf = ctypes.create_unicode_buffer(32768)
+        size = wintypes.DWORD(len(buf))
+        if kernel32.QueryFullProcessImageNameW(handle, 0, buf,
+                                               ctypes.byref(size)):
+            return buf.value.rsplit("\\", 1)[-1].lower()
+        return ""
+    finally:
+        kernel32.CloseHandle(handle)
 
 
 # --- Clipboard handling (pywin32) ----------------------------------------
@@ -130,11 +172,15 @@ def _set_clipboard_text(text: str) -> None:
         clip.CloseClipboard()
 
 
-def _paste_clipboard(text: str, restore: bool = True) -> None:
+def _paste_clipboard(text: str, restore: bool = True,
+                     terminal_processes=DEFAULT_TERMINAL_PROCESSES) -> None:
+    use_shift = _foreground_process_name() in {
+        p.lower() for p in terminal_processes
+    }
     saved = _get_clipboard_text() if restore else None
     _set_clipboard_text(text)
     time.sleep(0.05)          # let the clipboard update settle
-    _send_ctrl_v()
+    _send_ctrl_v(shift=use_shift)
     time.sleep(0.15)          # let the target app read it before restoring
     if restore and saved is not None:
         _set_clipboard_text(saved)
@@ -143,14 +189,16 @@ def _paste_clipboard(text: str, restore: bool = True) -> None:
 # --- Public entry point ---------------------------------------------------
 
 def inject(text: str, method: str = "clipboard",
-           restore_clipboard: bool = True) -> None:
+           restore_clipboard: bool = True,
+           terminal_processes=DEFAULT_TERMINAL_PROCESSES) -> None:
     """Insert text at the focused app's cursor via the configured method."""
     if not text:
         return
     if method == "type":
         _type_unicode(text)
     elif method == "clipboard":
-        _paste_clipboard(text, restore=restore_clipboard)
+        _paste_clipboard(text, restore=restore_clipboard,
+                         terminal_processes=terminal_processes)
     else:
         raise ValueError(f"unknown inject method: {method!r} "
                          "(expected 'clipboard' or 'type')")

@@ -39,6 +39,15 @@ class CleanupConfig:
 class InjectConfig:
     method: str = "clipboard"   # "clipboard" or "type"
     restore_clipboard: bool = True
+    # Foreground apps that paste with Ctrl+Shift+V instead of Ctrl+V
+    terminal_processes: list[str] = field(default_factory=lambda: [
+        "wezterm-gui.exe",
+        "windowsterminal.exe",
+        "alacritty.exe",
+        "mintty.exe",
+        "hyper.exe",
+        "ghostty.exe",
+    ])
 
 
 @dataclass

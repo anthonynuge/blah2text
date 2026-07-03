@@ -93,6 +93,12 @@ List audio input devices: `python run.py --list-devices`.
   transcript on the clipboard, sends `Ctrl+V`, then restores the old
   clipboard. Instant even for long text. (Non-text clipboard contents, e.g.
   images, can't be saved/restored.)
+
+  When the focused app is a known terminal (`terminal_processes` in
+  config.toml — WezTerm, Windows Terminal, Alacritty, ...), it sends
+  `Ctrl+Shift+V` instead. The terminal intercepts that chord and feeds the
+  clipboard to the inner program as typed input, so pasting works even in
+  TUIs (Claude Code, vim, REPLs) that have no `Ctrl+V` binding of their own.
 - **`type`**: synthesizes real keystrokes with Win32 `SendInput` +
   `KEYEVENTF_UNICODE`. Works in apps that ignore paste — including many
   terminals — and doesn't touch the clipboard. Slower for long text.

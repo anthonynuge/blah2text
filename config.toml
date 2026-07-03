@@ -25,6 +25,17 @@ timeout_seconds = 20.0
 method = "clipboard"    # "clipboard" = Ctrl+V paste (saves/restores clipboard)
                         # "type"      = ctypes SendInput KEYEVENTF_UNICODE (works in terminals)
 restore_clipboard = true
+# Focused apps that get Ctrl+Shift+V instead of Ctrl+V. These terminals
+# handle the paste themselves, so it works even inside TUIs (Claude Code,
+# vim, REPLs) that don't bind Ctrl+V. Add your terminal's exe if missing.
+terminal_processes = [
+    "wezterm-gui.exe",
+    "windowsterminal.exe",
+    "alacritty.exe",
+    "mintty.exe",
+    "hyper.exe",
+    "ghostty.exe",
+]
 
 # ---------------------------------------------------------------------------
 # Planned features (documented stubs — not implemented in the MVP):
