@@ -2,7 +2,7 @@
 # Edit and restart the app to apply changes.
 
 [hotkey]
-key = "f9"              # push-to-talk key: hold to record, release to transcribe
+key = "control + space"  # push-to-talk key: hold to record, release to transcribe
 
 [audio]
 samplerate = 16000      # Whisper models expect 16 kHz
