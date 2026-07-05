@@ -1,13 +1,56 @@
+<p align="center">
+  <img src="docs/images/demo.gif" width="640" alt="blah2text demo" />
+</p>
+
+<div align="center">
+
 # blah2text
 
-A local, fully-offline [Wispr Flow](https://wisprflow.ai/)-style dictation app
-for Windows 11. Hold a hotkey, speak, release — your words are transcribed by
-a local Whisper model, cleaned up by a local LLM, and typed at your cursor in
-whatever app has focus. No cloud, no telemetry.
+### A local, fully-offline Wispr Flow-style push-to-talk dictation app for Windows
+
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
+<img src="https://img.shields.io/badge/Python-3.11+-blue?style=flat-square" alt="Python">
+<img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square" alt="Windows">
+
+</div>
+
+---
+
+<details>
+<summary>Table of Contents</summary>
+
+- [Overview](#overview)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Usage](#usage)
+- [Configuration](#configuration-configtoml)
+- [Tests](#tests)
+- [Roadmap](#roadmap-documented-stubs-not-yet-implemented)
+- [Credits](#credits)
+- [License](#license)
+
+</details>
+
+## Overview
+
+[Wispr Flow](https://wisprflow.ai/) does this in the cloud; blah2text does it
+on your machine. Hold a hotkey, speak, release — your words are transcribed
+by a local Whisper model, cleaned up by a local LLM, and typed at your cursor
+in whatever app has focus. No cloud, no telemetry.
 
 **Pipeline:** mic → [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 (CTranslate2, Silero VAD) → rule-based cleanup → [Ollama](https://ollama.com)
 LLM cleanup → clipboard-paste or SendInput injection.
+
+## Features
+
+- **Push-to-talk dictation** - hold a configurable hotkey, speak, release; text appears at your cursor.
+- **Fully offline** - Whisper transcription and Ollama cleanup both run locally; no cloud calls, no telemetry.
+- **GPU with automatic CPU fallback** - uses CUDA float16 when available, silently drops to CPU int8 if not.
+- **Latency-aware cleanup** - a rule-based pass always runs; short utterances skip the LLM entirely; a stalled Ollama never blocks dictation.
+- **Two injection methods** - clipboard paste (fast, with terminal-aware `Ctrl+Shift+V`) or raw `SendInput` keystrokes (works where paste doesn't).
+- **Recording visualizer** - a transparent, click-through waveform overlay reacts to your voice while you hold the hotkey.
 
 ## Requirements
 
@@ -33,8 +76,10 @@ ollama pull qwen2.5:7b
 Smaller alternatives (set `[cleanup] model` in `config.toml`):
 `ollama pull gemma3:4b` or `ollama pull llama3.2:3b`.
 
-The Whisper model weights download automatically on first run (cached under
-`%USERPROFILE%\.cache\huggingface`). After that, everything runs offline.
+> [!NOTE]
+> The Whisper model weights download automatically on first run (cached
+> under `%USERPROFILE%\.cache\huggingface`). After that, everything runs
+> offline.
 
 ### RTX 50-series (Blackwell) note
 
@@ -152,3 +197,7 @@ Architecture informed by
 push-to-talk + optional Ollama cleanup) and
 [xarthurx/whisperi](https://github.com/xarthurx/whisperi) (Win32 SendInput
 injection into any app, including terminals).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
