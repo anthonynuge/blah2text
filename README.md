@@ -108,7 +108,7 @@ keeps working on CPU either way.)
 python run.py
 ```
 
-- **Hold `F9`** (configurable) and speak.
+- **Hold `ctrl+space`** (configurable) and speak.
 - **Release** — the audio is transcribed, cleaned, and injected at your cursor.
 
 Try the pipeline without a microphone:
