@@ -6,7 +6,7 @@
 
 # blah2text
 
-### A local, fully-offline Wispr Flow-style push-to-talk dictation app for Windows
+### A local, fully-offline push-to-talk dictation app for Windows
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
 <img src="https://img.shields.io/badge/Python-3.11+-blue?style=flat-square" alt="Python">
@@ -34,8 +34,7 @@
 
 ## Overview
 
-[Wispr Flow](https://wisprflow.ai/) does this in the cloud; blah2text does it
-on your machine. Hold a hotkey, speak, release — your words are transcribed
+Hold a hotkey, speak, release — your words are transcribed
 by a local Whisper model, cleaned up by a local LLM, and typed at your cursor
 in whatever app has focus. No cloud, no telemetry.
 
@@ -122,18 +121,18 @@ List audio input devices: `python run.py --list-devices`.
 
 ## Configuration (`config.toml`)
 
-| Section     | Key                 | Default            | Notes |
-|-------------|---------------------|--------------------|-------|
-| `hotkey`    | `key`               | `"f9"`             | push-to-talk key ([key names](https://pypi.org/project/global-hotkeys/)) |
-| `audio`     | `device`            | `-1`               | `-1` = default mic |
-| `stt`       | `model`             | `"small.en"`       | `tiny.en` … `large-v3` |
-| `stt`       | `device`            | `"auto"`           | CUDA float16 → CPU int8 fallback |
-| `cleanup`   | `model`             | `"qwen2.5:7b"`     | any Ollama model |
-| `cleanup`   | `min_words_for_llm` | `10`               | shorter utterances skip the LLM |
-| `inject`    | `method`            | `"clipboard"`      | `"clipboard"` or `"type"` |
-| `visualizer`| `enabled`           | `true`             | waveform overlay while recording |
-| `visualizer`| `color`             | `"#e8e8e8"`        | bar color (any Tk color) |
-| `visualizer`| `background`        | `"transparent"`    | `"transparent"` or a solid color |
+| Section      | Key                 | Default         | Notes                                                                    |
+| ------------ | ------------------- | --------------- | ------------------------------------------------------------------------ |
+| `hotkey`     | `key`               | `"ctrl+space"`  | push-to-talk key ([key names](https://pypi.org/project/global-hotkeys/)) |
+| `audio`      | `device`            | `-1`            | `-1` = default mic                                                       |
+| `stt`        | `model`             | `"small.en"`    | `tiny.en` … `large-v3`                                                   |
+| `stt`        | `device`            | `"auto"`        | CUDA float16 → CPU int8 fallback                                         |
+| `cleanup`    | `model`             | `"qwen2.5:7b"`  | any Ollama model                                                         |
+| `cleanup`    | `min_words_for_llm` | `10`            | shorter utterances skip the LLM                                          |
+| `inject`     | `method`            | `"clipboard"`   | `"clipboard"` or `"type"`                                                |
+| `visualizer` | `enabled`           | `true`          | waveform overlay while recording                                         |
+| `visualizer` | `color`             | `"#e8e8e8"`     | bar color (any Tk color)                                                 |
+| `visualizer` | `background`        | `"transparent"` | `"transparent"` or a solid color                                         |
 
 ### The two injection methods
 
@@ -147,6 +146,7 @@ List audio input devices: `python run.py --list-devices`.
   `Ctrl+Shift+V` instead. The terminal intercepts that chord and feeds the
   clipboard to the inner program as typed input, so pasting works even in
   TUIs (Claude Code, vim, REPLs) that have no `Ctrl+V` binding of their own.
+
 - **`type`**: synthesizes real keystrokes with Win32 `SendInput` +
   `KEYEVENTF_UNICODE`. Works in apps that ignore paste — including many
   terminals — and doesn't touch the clipboard. Slower for long text.
@@ -164,7 +164,7 @@ bar `color`, `background` (`"transparent"` or a solid color like
 ### Cleanup behavior (latency rules)
 
 1. A rule-based pass **always** runs: collapses whitespace and strips
-   standalone fillers (*um, uh, hmm, er, ah*). It never deletes real words.
+   standalone fillers (_um, uh, hmm, er, ah_). It never deletes real words.
 2. Utterances under 10 words **skip the LLM entirely** — short commands
    appear instantly.
 3. If Ollama is down or times out, the rule-cleaned text is used. Dictation
